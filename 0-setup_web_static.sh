@@ -1,36 +1,42 @@
 #!/usr/bin/env bash
 # Sets up the server for deployment of webstatic
 
-#install nginx
+# Install nginx
 if ! command -v nginx &> /dev/null; then
-	apt-get -y update
-	apt-get -y install nginx
+    apt-get -y update
+    apt-get -y install nginx
 fi
 
-#create required directories
+# Create required directories
 mkdir -p /data/web_static/releases/test /data/web_static/shared
 
-#create html
+# Create HTML
 echo "<html>
-      <head>
-      </head>
-      <body>Holberton School</body>
-      </html>
-      " | tee /data/web_static/releases/test/index.html > /dev/null
-#create a symbolic link
-sudo ln -sf /data/web_static/releases/test /data/web_static/current
+  <head>
+  </head>
+  <body>
+    Holberton School
+  </body>
+</html>" | tee /data/web_static/releases/test/index.html > /dev/null
 
-#give ownership to group and user
+# Create a symbolic link
+ln -sf /data/web_static/releases/test /data/web_static/current
+
+# Give ownership to ubuntu user and group
 chown -R ubuntu:ubuntu /data/
 
+# Nginx configuration content with proper formatting
 nginx_config_content="location /hbnb_static {
-	alias /data/web_static/current/;
-	index index.html;
+    alias /data/web_static/current/;
+    index index.html;
 }"
 
-sudo sed -i "/server_name _;/a $nginx_config_content" /etc/nginx/sites-available/default
+# Create a temporary file with the new configuration
+temp_file=$(mktemp)
+awk -v content="$nginx_config_content" '!/^#/ && /server_name localhost;/ {print; print content; next} 1' /etc/nginx/sites-available/default > "$temp_file"
 
-#restart nginx
+# Overwrite the original configuration file
+mv "$temp_file" /etc/nginx/sites-available/default
+
+# Restart nginx
 service nginx restart
-
-exit 0
