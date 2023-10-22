@@ -14,6 +14,6 @@ class State(BaseModel, Base):
             cascade='all, delete-orphan')
 
     @property
-    def cities(self):
+    def cities_getter(self):
         """Getter for the cities"""
         return [city for city in self.cities]
