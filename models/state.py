@@ -12,3 +12,8 @@ class State(BaseModel, Base):
     cities = relationship(
             'City', back_populates='state',
             cascade='all, delete-orphan')
+
+    @property
+    def cities(self):
+        """Getter for the cities"""
+        return [city for city in self.cities]
